@@ -1,0 +1,153 @@
+{
+  "name": "membrane-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for the Membrane story engine",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "mcp": {
+    "name": "membrane-story-engine",
+    "version": "0.1.0",
+    "description": "Exposes Membrane's story engine — stories, chapters, characters, beats, worldbuilding, and AI generation — as MCP tools and resources.",
+    "runtime": "python",
+    "entrypoint": "run.py",
+    "tools": [
+      {
+        "name": "list_stories",
+        "description": "List all stories for the current user."
+      },
+      {
+        "name": "get_story",
+        "description": "Get a full story with chapters, characters, beats, worldbuilding, and key events."
+      },
+      {
+        "name": "create_story",
+        "description": "Create a new story. Auto-creates the first chapter."
+      },
+      {
+        "name": "update_story",
+        "description": "Update a story's title or description."
+      },
+      {
+        "name": "delete_story",
+        "description": "Delete a story and all its chapters, characters, and beats."
+      },
+      {
+        "name": "create_chapter",
+        "description": "Add a new chapter to a story."
+      },
+      {
+        "name": "update_chapter",
+        "description": "Update a chapter's title, text, or summary."
+      },
+      {
+        "name": "summarize_chapter",
+        "description": "AI-summarize a chapter's prose."
+      },
+      {
+        "name": "list_characters",
+        "description": "List all characters in a story."
+      },
+      {
+        "name": "create_character",
+        "description": "Create a new character profile."
+      },
+      {
+        "name": "update_character",
+        "description": "Update character fields."
+      },
+      {
+        "name": "delete_character",
+        "description": "Delete a character."
+      },
+      {
+        "name": "create_beat",
+        "description": "Add a story beat/scene to a chapter."
+      },
+      {
+        "name": "get_beats",
+        "description": "List all beats in a chapter."
+      },
+      {
+        "name": "update_beat",
+        "description": "Update a beat's description or order."
+      },
+      {
+        "name": "delete_beat",
+        "description": "Delete a beat."
+      },
+      {
+        "name": "create_world_element",
+        "description": "Add a worldbuilding element to a chapter."
+      },
+      {
+        "name": "get_world_elements",
+        "description": "List worldbuilding elements in a chapter."
+      },
+      {
+        "name": "create_key_event",
+        "description": "Add a key event/outline point to a chapter."
+      },
+      {
+        "name": "get_key_events",
+        "description": "List key events in a chapter."
+      },
+      {
+        "name": "add_memory",
+        "description": "Add a text memory to the vector store for a project."
+      },
+      {
+        "name": "search_memory",
+        "description": "Semantic search across project memories."
+      },
+      {
+        "name": "generate_character",
+        "description": "AI-generate a character profile."
+      },
+      {
+        "name": "generate_worldbuilding",
+        "description": "AI-generate a worldbuilding element."
+      },
+      {
+        "name": "generate_prose",
+        "description": "AI-generate narrative prose from chapter beats and context."
+      },
+      {
+        "name": "query_context",
+        "description": "RAG-style context query — compile relevant story context for a question."
+      }
+    ],
+    "resources": [
+      {
+        "uri": "story://{story_id}",
+        "name": "Story",
+        "description": "Full story with chapters, characters, beats, and worldbuilding."
+      },
+      {
+        "uri": "chapter://{chapter_id}",
+        "name": "Chapter",
+        "description": "Chapter with its text, summary, beats, worldbuilding, and key events."
+      },
+      {
+        "uri": "character://{character_id}",
+        "name": "Character",
+        "description": "Character profile."
+      },
+      {
+        "uri": "beat://{beat_id}",
+        "name": "Beat",
+        "description": "Single story beat."
+      },
+      {
+        "uri": "worldelement://{worldelement_id}",
+        "name": "Worldbuilding Element",
+        "description": "Worldbuilding element."
+      },
+      {
+        "uri": "keyevent://{keyevent_id}",
+        "name": "Key Event",
+        "description": "Key event/outline point."
+      }
+    ]
+  }
+}

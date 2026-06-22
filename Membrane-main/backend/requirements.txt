@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+python-jose
+passlib[bcrypt]
+python-multipart
+aiofiles
+httpx
+sse-starlette
+psycopg2-binary
+python-dotenv
