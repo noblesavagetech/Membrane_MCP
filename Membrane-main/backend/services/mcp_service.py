@@ -9,6 +9,8 @@ Handlers are called by call_mcp_tool() in mcp.py with the active DB session.
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -410,12 +412,13 @@ def _search_memory(args: dict, session: MCPSession, db: Session) -> dict[str, An
            "use_context": {"type": "boolean", "default": True},
            "model": {"type": "string"},
        }})
-def _generate_character(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+async def _generate_character(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
     from services.story_service import StoryService
     _verify_story_access(session, db)
     svc = StoryService(db)
-    result = svc.generate_character_profile(
-        session.story_id, args.get("generation_type", "supporting"),
+    story = svc.get_story(session.story_id, session.user_id)
+    result = await svc.generate_character_profile(
+        story, args.get("generation_type", "supporting"),
         args.get("parameters") or {}, args.get("use_context", True), args.get("model"),
     )
     return ok(result)
@@ -431,13 +434,22 @@ def _generate_character(args: dict, session: MCPSession, db: Session) -> dict[st
            "use_context": {"type": "boolean", "default": True},
            "model": {"type": "string"},
        }})
-def _generate_worldbuilding(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+async def _generate_worldbuilding(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+    from models import Chapter
     from services.story_service import StoryService
     _verify_story_access(session, db)
     svc = StoryService(db)
-    result = svc.generate_worldbuilding_element(
-        session.story_id, args["chapter_id"], args.get("generation_type", "location"),
-        args.get("parameters") or {}, args.get("use_context", True), args.get("model"),
+    story = svc.get_story(session.story_id, session.user_id)
+    chapter = db.query(Chapter).filter(Chapter.id == args["chapter_id"], Chapter.story_id == session.story_id).first()
+    if not chapter:
+        return tool_err(f"Chapter {args['chapter_id']} not found")
+    result = await svc.generate_worldbuilding_element(
+        story=story,
+        chapter=chapter,
+        generation_type=args.get("generation_type", "location"),
+        parameters=args.get("parameters") or {},
+        use_context=args.get("use_context", True),
+        model=args.get("model"),
     )
     return ok(result)
 
@@ -451,13 +463,24 @@ def _generate_worldbuilding(args: dict, session: MCPSession, db: Session) -> dic
                             "default": "full"},
            "model": {"type": "string"},
        }})
-def _generate_prose(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+async def _generate_prose(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+    from models import Chapter
     from services.story_service import StoryService
     _verify_story_access(session, db)
     svc = StoryService(db)
-    result = svc.generate_prose(
-        args["chapter_id"], args.get("prompt", ""),
-        args.get("context_type", "full"), args.get("model"),
+    story = svc.get_story(session.story_id, session.user_id)
+    chapter = db.query(Chapter).filter(Chapter.id == args["chapter_id"], Chapter.story_id == session.story_id).first()
+    if not chapter:
+        return tool_err(f"Chapter {args['chapter_id']} not found")
+    result = await svc.generate_prose(
+        chapter=chapter,
+        story=story,
+        characters=list(story.characters) if story.characters else [],
+        beats=list(chapter.beats) if chapter.beats else [],
+        key_events=list(story.key_events) if story.key_events else [],
+        world_elements=list(chapter.world_elements) if chapter.world_elements else [],
+        prompt=args.get("prompt", ""),
+        model=args.get("model"),
     )
     return ok(result)
 
@@ -469,13 +492,16 @@ def _generate_prose(args: dict, session: MCPSession, db: Session) -> dict[str, A
            "top_k": {"type": "integer", "default": 5},
            "model": {"type": "string"},
        }})
-def _query_context(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
+async def _query_context(args: dict, session: MCPSession, db: Session) -> dict[str, Any]:
     from services.story_service import StoryService
     _verify_story_access(session, db)
     svc = StoryService(db)
-    result = svc.query_context(
-        session.story_id, args.get("query", ""),
-        args.get("top_k", 5), args.get("model"),
+    result = await svc.query_context(
+        story_id=session.story_id,
+        user_id=session.user_id,
+        prompt=args.get("query", ""),
+        chapter_id=args.get("chapter_id"),
+        model=args.get("model"),
     )
     return ok(result)
 
@@ -497,12 +523,15 @@ def _verify_story_access(session: MCPSession, db: Session) -> None:
 # Public API (called by mcp.py)
 # ---------------------------------------------------------------------------
 
-def call_mcp_tool(tool_name: str, args: dict[str, Any], session: MCPSession, db: Session) -> dict[str, Any]:
+async def call_mcp_tool(tool_name: str, args: dict[str, Any], session: MCPSession, db: Session) -> dict[str, Any]:
     handler = _TOOL_MAP.get(tool_name)
     if not handler:
         return tool_err(f"Unknown tool: {tool_name}")
     try:
-        return handler(args, session, db)
+        result = handler(args, session, db)
+        if inspect.isawaitable(result):
+            result = await result
+        return result
     except PermissionError as e:
         return tool_err(str(e))
     except Exception as e:

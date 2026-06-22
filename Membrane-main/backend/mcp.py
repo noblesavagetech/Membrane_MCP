@@ -12,6 +12,8 @@ isolated MCP context.
 Reference: MCP HTTP endpoint spec — https://modelcontextprotocol.io/docs/specification
 """
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -116,7 +118,7 @@ async def mcp_dispatch(
             system_prompt=mcp_cfg["system_prompt"],
         )
 
-        result = call_mcp_tool(tool_name, raw_args, mcp_session, db)
+        result = await call_mcp_tool(tool_name, raw_args, mcp_session, db)
 
         # Return both the result and metadata about which tools were used.
         # This lets the frontend debug panel show exactly what the LLM called.
@@ -160,16 +162,21 @@ async def mcp_dispatch(
         context_type = raw_args.get("context_type", "")
         generation_type = raw_args.get("generation_type", "")
 
-        if generation_type and "character" in generation_type.lower():
+        # Character generation types: protagonist, antagonist, supporting, minor
+        CHARACTER_TYPES = {"protagonist", "antagonist", "supporting", "minor"}
+        # Worldbuilding generation types: location, culture, magic_system, etc.
+        WORLD_TYPES = {"location", "culture", "magic_system", "technology", "history", "creature"}
+
+        if generation_type.lower() in CHARACTER_TYPES:
             tool_name = "generate_character"
-        elif generation_type and ("world" in generation_type.lower() or "setting" in generation_type.lower()):
+        elif generation_type.lower() in WORLD_TYPES:
             tool_name = "generate_worldbuilding"
         elif context_type == "beat" or "beat" in raw_args.get("prompt", "").lower():
             tool_name = "generate_prose"  # beat expansion still uses prose tool for now
         else:
             tool_name = "generate_prose"
 
-        result = call_mcp_tool(tool_name, raw_args, mcp_session, db)
+        result = await call_mcp_tool(tool_name, raw_args, mcp_session, db)
 
         # Return both the result and metadata about which tools were used.
         # This lets the frontend debug panel show exactly what the LLM called.

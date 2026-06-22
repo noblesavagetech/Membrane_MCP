@@ -108,7 +108,7 @@ export default function CharacterGenerator({ storyId, models, onGenerated }: Cha
           model
         }
       })
-      const content = res?.result?.data?.content || res?.result?.content || res?.content || 'Generation completed.'
+      const content = (res as any)?.result?.data?.content || (res as any)?.result?.content || (res as any)?.content || 'Generation completed.'
       setResult(content)
       setShowResult(true)
       onGenerated(content)
@@ -142,7 +142,7 @@ export default function CharacterGenerator({ storyId, models, onGenerated }: Cha
           model
         }
       })
-      const content = res?.result?.data?.content || res?.result?.content || res?.content || 'Generation completed.'
+      const content = (res as any)?.result?.data?.content || (res as any)?.result?.content || (res as any)?.content || 'Generation completed.'
       setResult(content)
       setShowResult(true)
       onGenerated(content)

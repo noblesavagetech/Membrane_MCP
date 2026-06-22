@@ -343,7 +343,7 @@ export default function StoryEditor() {
           model: 'google/gemini-3.1-flash-lite-preview'
         }
       })
-      const summary = result?.result?.data?.content || result?.result?.summary || result?.content || 'Summary generated via MCP.'
+      const summary = (result as any)?.result?.data?.content || (result as any)?.result?.summary || (result as any)?.content || 'Summary generated via MCP.'
       setChapterSummary(summary)
       setSaveMessage('Summary generated via MCP!')
       setTimeout(() => setSaveMessage(''), 2000)
@@ -614,11 +614,11 @@ Scene Input: ${aiProseInput}
           model: aiProseModel
         }
       })
-      const content = result?.result?.data?.content || result?.result?.content || result?.content || 'No prose output returned by the model.'
+      const content = (result as any)?.result?.data?.content || (result as any)?.result?.content || (result as any)?.content || 'No prose output returned by the model.'
       setAiProseResult(content)
 
       // Log the tool calls returned by the MCP server
-      const toolCalls = result?.tool_calls || result?.result?.tool_calls || [{
+      const toolCalls = (result as any)?.tool_calls || (result as any)?.result?.tool_calls || [{
         tool: 'generate_prose',
         args: { model: aiProseModel, context_type: 'prose' },
         time: new Date().toLocaleTimeString()
@@ -679,11 +679,11 @@ Beat/Scene to Expand: ${aiBeatInput}
           model: aiBeatModel
         }
       })
-      const content = result?.result?.data?.content || result?.result?.content || result?.content || 'No beat expansion output returned by the model.'
+      const content = (result as any)?.result?.data?.content || (result as any)?.result?.content || (result as any)?.content || 'No beat expansion output returned by the model.'
       setAiBeatResult(content)
 
       // Log the tool calls returned by the MCP server
-      const toolCalls = result?.tool_calls || result?.result?.tool_calls || [{
+      const toolCalls = (result as any)?.tool_calls || (result as any)?.result?.tool_calls || [{
         tool: 'generate_prose',
         args: { model: aiBeatModel, context_type: 'beat' },
         time: new Date().toLocaleTimeString()
@@ -730,7 +730,7 @@ QUESTION: ${queryPrompt}
         }
       })
 
-      const content = result?.result?.data?.content || result?.result?.content || result?.content || 'No context returned.'
+      const content = (result as any)?.result?.data?.content || (result as any)?.result?.content || (result as any)?.content || 'No context returned.'
       setQueryResult(content)
 
       // Log the tool call for the debug panel
@@ -1573,7 +1573,7 @@ ${chapterText.slice(0, 500)}...
               <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--color-surface)', borderRadius: '6px' }}>
                 <label className="story-label" style={{ marginBottom: '0.25rem' }}>MCP 端點</label>
                 <code style={{ fontSize: '0.8rem', wordBreak: 'break-all', color: 'var(--color-text-secondary)' }}>
-                  POST /api/mcp?story_id={storyId}
+                  POST /api/mcp?story_id={story?.id}
                 </code>
                 <p className="story-help" style={{ marginTop: '0.5rem' }}>
                   外部 AI 用戶端可使用此端點呼叫 MCP 工具。需附上 JWT 認證。
