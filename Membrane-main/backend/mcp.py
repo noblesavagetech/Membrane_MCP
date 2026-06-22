@@ -163,7 +163,7 @@ async def mcp_dispatch(
         generation_type = raw_args.get("generation_type", "")
 
         # Character generation types: protagonist, antagonist, supporting, minor
-        CHARACTER_TYPES = {"protagonist", "antagonist", "supporting", "minor"}
+        CHARACTER_TYPES = {"protagonist", "antagonist", "supporting", "minor", "full_profile", "physical_only"}
         # Worldbuilding generation types: location, culture, magic_system, etc.
         WORLD_TYPES = {"location", "culture", "magic_system", "technology", "history", "creature"}
 
